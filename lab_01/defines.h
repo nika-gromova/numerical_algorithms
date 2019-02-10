@@ -7,5 +7,9 @@
 #define MEMORY_ERROR    -3
 #define OPEN_FILE_ERROR -4
 
+#include <math.h>
+#define EPS 1e-10
+#define IS_EQUAL(x, y) (fabs((x) - (y)) <= EPS)
+
 
 #endif // DEFINES_H

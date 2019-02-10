@@ -20,14 +20,33 @@ int main(int argc, char *argv[])
     int rc = OK;
     double **mtr = NULL;
     int size = 0;
+    double x_for_search;
+    int degree_of_polynomial;
     FILE *f = fopen(argv[1], "r");
     if (f)
     {
         rc = read_file(f, &mtr, &size);
         if (rc == OK)
         {
+            sort_inc(mtr, size);
             print_dots(mtr, size);
-            free_matrix(mtr, size);
+            printf("\n");
+            printf("Input X:\n");
+            if (scanf("%lf", &x_for_search) == 1)
+            {
+                printf("Input degree of the polynomial n:\n");
+                if (scanf("%d", &degree_of_polynomial) == 1)
+                {
+
+                }
+                else
+                    rc = INPUT_ERROR;
+            }
+            else
+                rc = INPUT_ERROR;
+            if (rc == INPUT_ERROR)
+                printf("Incorrect input!\n");
+            free_matrix(mtr);
         }
         else
         {
@@ -40,5 +59,5 @@ int main(int argc, char *argv[])
         printf("Error in opening file. Please try again\n");
         return OPEN_FILE_ERROR;
     }
-    return OK;
+    return rc;
 }
