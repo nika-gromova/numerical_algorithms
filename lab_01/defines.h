@@ -6,6 +6,7 @@
 #define INPUT_ERROR     -2
 #define MEMORY_ERROR    -3
 #define OPEN_FILE_ERROR -4
+#define NOT_ENOUGH_DATA -5
 
 #include <math.h>
 #define EPS 1e-10

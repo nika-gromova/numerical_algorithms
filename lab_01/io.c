@@ -74,20 +74,3 @@ void print_dots(double **mtr, int n)
     }
 }
 
-void sort_inc(double **mtr, int size)
-{
-    double tmp;
-    for (int i = 0; i < size - 1; i++)
-        for (int j = i + 1; j < size; j++)
-        {
-            if (mtr[0][i] > mtr[0][j])
-            {
-               tmp = mtr[0][i];
-               mtr[0][i] = mtr[0][j];
-               mtr[0][j] = tmp;
-               tmp = mtr[1][i];
-               mtr[1][i] = mtr[1][j];
-               mtr[1][j] = tmp;
-            }
-        }
-}

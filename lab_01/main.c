@@ -2,6 +2,7 @@
 
 #include "defines.h"
 #include "io.h"
+#include "process.h"
 
 void info(void)
 {
@@ -22,6 +23,9 @@ int main(int argc, char *argv[])
     int size = 0;
     double x_for_search;
     int degree_of_polynomial;
+    double **mtr_selected = NULL;
+    int selected_size = 0;
+    double result;
     FILE *f = fopen(argv[1], "r");
     if (f)
     {
@@ -37,6 +41,32 @@ int main(int argc, char *argv[])
                 printf("Input degree of the polynomial n:\n");
                 if (scanf("%d", &degree_of_polynomial) == 1)
                 {
+                    selected_size = degree_of_polynomial + 1;
+                    mtr_selected = allocate(selected_size);
+                    if (mtr_selected)
+                    {
+                        rc = calculate(mtr, size, mtr_selected, selected_size, x_for_search, degree_of_polynomial, &result);
+                        if (rc == -10)
+                        {
+                            printf("Searching argument is already in initial data.\n"); //: (%.3lf, %.3lf)\n")
+                        }
+                        else if (rc == -20)
+                        {
+                            printf("Extrapolation occured. Calculation stopped.\n");
+                        }
+                        else if (rc != OK)
+                        {
+                            printf("There is not enough data for making polynomial of needed degree!\n");
+                        }
+                        else
+                        {
+                            printf("result = %.3lf\n", result);
+                        }
+                        free_matrix(mtr_selected);
+                    }
+                    else
+                        rc = MEMORY_ERROR;
+                    // add find root
 
                 }
                 else
@@ -61,3 +91,6 @@ int main(int argc, char *argv[])
     }
     return rc;
 }
+
+
+
