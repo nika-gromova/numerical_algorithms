@@ -5,6 +5,7 @@
 #include "process.h"
 #include "allocate.h"
 
+
 void sort_inc(double **mtr, int size)
 {
     double tmp;
