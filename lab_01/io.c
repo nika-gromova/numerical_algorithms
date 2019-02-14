@@ -1,35 +1,8 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "defines.h"
 #include "io.h"
-
-double **allocate(int n)
-{
-    double **matrix = malloc(3 * sizeof(double *));
-    if (matrix)
-    {
-        double *data = calloc(n * 2, sizeof(double));
-        if (data)
-        {
-            for (int i = 0; i < 2; i++)
-                matrix[i] = data + i * n;
-            matrix[2] = data;
-        }
-        else
-        {
-            free(matrix);
-            return NULL;
-        }
-    }
-    return matrix;
-}
-
-void free_matrix(double **mtr)
-{
-    free(mtr[2]);
-    free(mtr);
-}
+#include "allocate.h"
 
 int read_file(FILE *f, double ***mtr, int *n)
 {
@@ -58,7 +31,7 @@ int read_file(FILE *f, double ***mtr, int *n)
                 rc = MEMORY_ERROR;
         }
         else
-            rc = PARAMS_ERROR;
+            rc = INPUT_ERROR;
     }
     else
         rc =INPUT_ERROR;

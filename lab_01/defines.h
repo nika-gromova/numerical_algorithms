@@ -8,6 +8,9 @@
 #define OPEN_FILE_ERROR -4
 #define NOT_ENOUGH_DATA -5
 
+#define FOUND          -10
+#define EXTRAPOLATION  -20
+
 #include <math.h>
 #define EPS 1e-10
 #define IS_EQUAL(x, y) (fabs((x) - (y)) <= EPS)

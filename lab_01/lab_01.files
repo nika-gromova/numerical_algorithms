@@ -1,3 +1,5 @@
+allocate.c
+allocate.h
 process.h
 process.c
 defines.h

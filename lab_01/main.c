@@ -3,12 +3,40 @@
 #include "defines.h"
 #include "io.h"
 #include "process.h"
+#include "allocate.h"
 
 void info(void)
 {
     printf("Please input in command line:\n");
     printf("app.exe input.txt\n");
     printf("\n'input.txt' - is a file, where the initial information about dots is stored.\n");
+}
+
+void messages(int rc, double result, double **mtr)
+{
+    if (rc == FOUND)
+    {
+        printf("result = %.3lf\n", result);
+    }
+    else if (rc == EXTRAPOLATION)
+    {
+        printf("Extrapolation occured. Calculation stopped.\n");
+    }
+    else if (rc == NOT_ENOUGH_DATA)
+    {
+        printf("There is not enough data for making polynomial of needed degree!\n");
+    }
+    else
+    {
+        printf("Searching argument is already in initial data: (%.3lf, %.3lf).\n",  mtr[0][rc], mtr[1][rc]);
+    }
+}
+
+void swap(double **mtr)
+{
+    double *tmp = mtr[0];
+    mtr[0] = mtr[1];
+    mtr[1] = tmp;
 }
 
 int main(int argc, char *argv[])
@@ -23,8 +51,6 @@ int main(int argc, char *argv[])
     int size = 0;
     double x_for_search;
     int degree_of_polynomial;
-    double **mtr_selected = NULL;
-    int selected_size = 0;
     double result;
     FILE *f = fopen(argv[1], "r");
     if (f)
@@ -38,36 +64,29 @@ int main(int argc, char *argv[])
             printf("Input X:\n");
             if (scanf("%lf", &x_for_search) == 1)
             {
-                printf("Input degree of the polynomial n:\n");
+                printf("Input degree of the polynomial n (positive integer):\n");
                 if (scanf("%d", &degree_of_polynomial) == 1)
                 {
-                    selected_size = degree_of_polynomial + 1;
-                    mtr_selected = allocate(selected_size);
-                    if (mtr_selected)
+                    if (degree_of_polynomial < 0)
                     {
-                        rc = calculate(mtr, size, mtr_selected, selected_size, x_for_search, degree_of_polynomial, &result);
-                        if (rc == -10)
-                        {
-                            printf("Searching argument is already in initial data.\n"); //: (%.3lf, %.3lf)\n")
-                        }
-                        else if (rc == -20)
-                        {
-                            printf("Extrapolation occured. Calculation stopped.\n");
-                        }
-                        else if (rc != OK)
-                        {
-                            printf("There is not enough data for making polynomial of needed degree!\n");
-                        }
-                        else
-                        {
-                            printf("result = %.3lf\n", result);
-                        }
-                        free_matrix(mtr_selected);
+                        printf("Only positive integer numbers!\n");
+                        rc = INPUT_ERROR;
+                    }
+                    else if(degree_of_polynomial == 0)
+                    {
+                        printf("result is only %.3lf. Try to input bigger degree.\n", mtr[1][0]);
                     }
                     else
-                        rc = MEMORY_ERROR;
-                    // add find root
-
+                    {
+                        rc = calculate(mtr, size, x_for_search, degree_of_polynomial, &result);
+                        messages(rc, result, mtr);
+                        printf("Finding roots:\n");
+                        swap(mtr);
+                        sort_inc(mtr, size);
+                        rc = calculate(mtr, size, 0.0, degree_of_polynomial, &result);
+                        swap(mtr);
+                        messages(rc, result, mtr);
+                    }
                 }
                 else
                     rc = INPUT_ERROR;
