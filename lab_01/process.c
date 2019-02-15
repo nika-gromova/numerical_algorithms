@@ -8,7 +8,7 @@
 
 void sort_inc(double **mtr, int size)
 {
-    double tmp;
+    double tmp; // сортировка с флагом
     for (int i = 0; i < size - 1; i++)
         for (int j = i + 1; j < size; j++)
         {
