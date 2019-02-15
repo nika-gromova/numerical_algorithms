@@ -77,31 +77,40 @@ int take_dots(double **mtr, int init_size, double **selected, int selected_size,
     return OK;
 }
 
-double find(double **mtr, int size, int degree, double x)
+double find(double **mtr, int size, int degree, double x, int *rc)
 {
+    *rc = OK;
+    double div;
     double res = 0;
     double *coefficients = calloc(degree + 1, sizeof(double));
     if (coefficients)
     {
         coefficients[0] = mtr[1][0];
         int n = degree;
-        for (int i = 1; i < degree + 1; i++)
+        for (int i = 1; i < degree + 1 && *rc == OK; i++)
         {
-            for (int j = 0; j < n; j++)
+            for (int j = 0; j < n && *rc == OK; j++)
             {
-                mtr[1][j] = (mtr[1][j] - mtr[1][j + 1]) / (mtr[0][0] - mtr[0][degree + 1 - n]);
+                div = mtr[0][0] - mtr[0][degree + 1 - n];
+                if (fabs(div) <= EPS)
+                    *rc = ZERO_DEVISION;
+                else
+                    mtr[1][j] = (mtr[1][j] - mtr[1][j + 1]) / (div);
             }
             coefficients[i] = mtr[1][0];
             n--;
         }
-        res = coefficients[0];
-        int c = 0;
-        double mult = 1.0;
-        for (int i = 1; i < degree + 1 && c < size; i++)
+        if (*rc == OK)
         {
-            mult *= (x - mtr[0][c]);
-            res += mult * coefficients[i];
-            c++;
+            res = coefficients[0];
+            int c = 0;
+            double mult = 1.0;
+            for (int i = 1; i < degree + 1 && c < size; i++)
+            {
+                mult *= (x - mtr[0][c]);
+                res += mult * coefficients[i];
+                c++;
+            }
         }
         /*for (int i = 0; i < degree + 1; i++)
             printf("%.3lf ", coefficients[i]);
@@ -117,19 +126,26 @@ int calculate(double **mtr, int size, double x_for_search, int degree_of_polynom
     int rc;
     int left, right;
     double **mtr_selected = NULL;
-    int selected_size = degree_of_polynomial + 1;
-    mtr_selected = allocate(selected_size);
-    if (mtr_selected)
+    int selected_size;
+    rc = search_place(mtr, size, x_for_search, &left, &right);
+    if (left > right)
     {
-        rc = search_place(mtr, size, x_for_search, &left, &right);
-        if (left > right)
-        {
-            int tmp = left;
-            left = right;
-            right = tmp;
-        }
-        //printf("left = %d, right = %d\n", left, right);
-        if (rc == FOUND)
+        int tmp = left;
+        left = right;
+        right = tmp;
+    }
+    if (rc == EXTRAPOLATION)
+    {
+        degree_of_polynomial = size - 1;
+        printf("Extrapolation occured:\n");
+        rc = FOUND;
+    }
+    //printf("left = %d, right = %d\n", left, right);
+    if (rc == FOUND)
+    {
+        selected_size = degree_of_polynomial + 1;
+        mtr_selected = allocate(selected_size);
+        if (mtr_selected)
         {
             rc = take_dots(mtr, size, mtr_selected, selected_size, left, right);
             if (rc == OK)
@@ -140,14 +156,14 @@ int calculate(double **mtr, int size, double x_for_search, int degree_of_polynom
                 {
                     printf("%.3lf %.3lf\n", mtr_selected[0][i], mtr_selected[1][i]);
                 }*/
-                *result = find(mtr_selected, selected_size, degree_of_polynomial, x_for_search);
-                rc = FOUND;
+                *result = find(mtr_selected, selected_size, degree_of_polynomial, x_for_search, &rc);
+                if (rc == OK)
+                    rc = FOUND;
             }
+            free_matrix(mtr_selected);
         }
-        free_matrix(mtr_selected);
-
+        else
+            rc = MEMORY_ERROR;
     }
-    else
-        rc = MEMORY_ERROR;
     return rc;
 }

@@ -26,6 +26,10 @@ void messages(int rc, double result, double **mtr)
     {
         printf("There is not enough data for making polynomial of needed degree!\n");
     }
+    else if (rc == ZERO_DEVISION)
+    {
+        printf("This method isn't suitable for such calculations!:(\n");
+    }
     else
     {
         printf("Searching argument is already in initial data: (%.3lf, %.3lf).\n",  mtr[0][rc], mtr[1][rc]);
@@ -72,9 +76,13 @@ int main(int argc, char *argv[])
                         printf("Only positive integer numbers!\n");
                         rc = INPUT_ERROR;
                     }
-                    else if(degree_of_polynomial == 0)
+                    else if (degree_of_polynomial == 0)
                     {
                         printf("result is only %.3lf. Try to input bigger degree.\n", mtr[1][0]);
+                    }
+                    else if (degree_of_polynomial >= size)
+                    {
+                        printf("Not enough data\n");
                     }
                     else
                     {
@@ -83,7 +91,7 @@ int main(int argc, char *argv[])
                         printf("Finding roots:\n");
                         swap(mtr);
                         sort_inc(mtr, size);
-                        rc = calculate(mtr, size, 0.0, degree_of_polynomial, &result);
+                        rc = calculate(mtr, size, 0.0, size - 1, &result);
                         swap(mtr);
                         messages(rc, result, mtr);
                     }

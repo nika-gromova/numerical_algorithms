@@ -7,6 +7,7 @@
 #define MEMORY_ERROR    -3
 #define OPEN_FILE_ERROR -4
 #define NOT_ENOUGH_DATA -5
+#define ZERO_DEVISION   -6
 
 #define FOUND          -10
 #define EXTRAPOLATION  -20
