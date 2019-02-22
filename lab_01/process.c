@@ -130,9 +130,11 @@ double find(double **mtr, int size, int degree, double x, int *rc)
                 c++;
             }
         }
-        /*for (int i = 0; i < degree + 1; i++)
-            printf("%.3lf ", coefficients[i]);
-        printf("\n");*/
+        /*printf("************");
+        for (int i = 0; i < degree + 1; i++)
+            printf("%.6lf\n", coefficients[i]);
+        printf("\n");
+        printf("*************");*/
         free(coefficients);
     }
     return res;

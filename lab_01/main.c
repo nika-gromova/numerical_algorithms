@@ -90,8 +90,8 @@ int main(int argc, char *argv[])
                         messages(rc, result, mtr);
                         printf("Finding roots:\n");
                         swap(mtr);
-                        sort_inc(mtr, size);
-                        rc = calculate(mtr, size, 0.0, size - 1, &result);
+                        //sort_inc(mtr, size);
+                        rc = calculate(mtr, size, 0.0, degree_of_polynomial, &result);
                         swap(mtr);
                         messages(rc, result, mtr);
                     }
