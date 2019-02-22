@@ -9,7 +9,25 @@
 void sort_inc(double **mtr, int size)
 {
     double tmp; // сортировка с флагом
-    for (int i = 0; i < size - 1; i++)
+    int flag = 1;
+    while (flag)
+    {
+        flag = 0;
+        for (int i = 1; i < size; i++)
+        {
+            if (mtr[0][i] < mtr[0][i - 1])
+            {
+               tmp = mtr[0][i];
+               mtr[0][i] = mtr[0][i - 1];
+               mtr[0][i - 1] = tmp;
+               tmp = mtr[1][i];
+               mtr[1][i] = mtr[1][i - 1];
+               mtr[1][i - 1] = tmp;
+               flag = 1;
+            }
+        }
+    }
+    /*for (int i = 0; i < size - 1; i++)
         for (int j = i + 1; j < size; j++)
         {
             if (mtr[0][i] > mtr[0][j])
@@ -21,7 +39,7 @@ void sort_inc(double **mtr, int size)
                mtr[1][i] = mtr[1][j];
                mtr[1][j] = tmp;
             }
-        }
+        }*/
 }
 
 
@@ -136,6 +154,16 @@ int calculate(double **mtr, int size, double x_for_search, int degree_of_polynom
     }
     if (rc == EXTRAPOLATION)
     {
+        if (left < 0)
+        {
+            left = 0;
+            right = 1;
+        }
+        if (right == size)
+        {
+            right = size - 1;
+            left = size - 2;
+        }
         degree_of_polynomial = size - 1;
         printf("Extrapolation occured:\n");
         rc = FOUND;

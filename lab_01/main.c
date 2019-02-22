@@ -116,6 +116,8 @@ int main(int argc, char *argv[])
         printf("Error in opening file. Please try again\n");
         return OPEN_FILE_ERROR;
     }
+    if (rc == FOUND)
+        rc = OK;
     return rc;
 }
 
