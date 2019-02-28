@@ -15,5 +15,7 @@
 #include <math.h>
 #define EPS 1e-10
 #define IS_EQUAL(x, y) (fabs((x) - (y)) <= EPS)
+#define SQUARE(x) ((x) * (x))
+#define CUBE(x) ((x) * (x) * (x))
 
 #endif // DEFINES_H

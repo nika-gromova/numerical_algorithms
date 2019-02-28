@@ -1,2 +1,6 @@
+main.c
+process.h
+allocate.c
+allocate.h
 defines.h
 process.c
