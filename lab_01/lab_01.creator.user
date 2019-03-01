@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.4.0, 2019-02-22T15:37:21. -->
+<!-- Written by QtCreator 4.4.0, 2019-03-01T15:28:50. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
-  <value type="QByteArray">{32530a7e-b5d1-42e8-8ede-61638e1db57a}</value>
+  <value type="QByteArray">{e557bf75-fed1-4463-bb13-0da5c8e2e21b}</value>
  </data>
  <data>
   <variable>ProjectExplorer.Project.ActiveTarget</variable>
@@ -165,7 +165,7 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">in_4.txt</value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">in_10.txt</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">app.exe</value>
     <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">true</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory">%{buildDir}</value>

@@ -16,7 +16,7 @@ void messages(int rc, double result, double **mtr)
 {
     if (rc == FOUND)
     {
-        printf("result = %.3lf\n", result);
+        printf("result = %.6lf\n", result);
     }
     else if (rc == EXTRAPOLATION)
     {
