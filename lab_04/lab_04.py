@@ -68,8 +68,8 @@ def gauss(mtr, r_vector, n):
             if fabs(mtr[k][i]) >= max_elem:
                 max_elem = fabs(mtr[k][i])
                 max_index = k
-        if max_elem < 1e-10:
-            return None
+        #if max_elem < 1e-10:
+            #return None
         if max_index != i:
             for k in range(n + 1):
                 mtr[i][k], mtr[max_index][k] = mtr[max_index][k], mtr[i][k]
