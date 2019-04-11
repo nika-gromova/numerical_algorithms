@@ -8,6 +8,11 @@ double find_T(input_data_t data, double z)
     return (data.T0 + (data.Tw - data.T0) * pow(z, data.m));
 }
 
+double find_nt(double p, double t)
+{
+    return ((K * p) / t);
+}
+
 void fill_nt_array(double *nt_array, double p, double h, input_data_t data)
 {
     double z = 0.0;
@@ -15,7 +20,7 @@ void fill_nt_array(double *nt_array, double p, double h, input_data_t data)
     for (int i = 0; i <= RANGE; i++)
     {
         tmp_T = find_T(data, z);
-        nt_array[i] = ((K * p) / tmp_T);
+        nt_array[i] = find_nt(p, tmp_T);
         z += h;
     }
 }

@@ -46,6 +46,7 @@ int main(void)
     case OK:
         print_array(nt_array, RANGE + 1);
         printf("result p = %lf\n", result_p);
+        free(nt_array);
         break;
     case INPUT_ERROR:
         printf("Error in input. Try again)\n");
