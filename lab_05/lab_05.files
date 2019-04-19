@@ -1,3 +1,5 @@
+interpolation.c
+interpolation.h
 main.c
 math_module.h
 math_module.c

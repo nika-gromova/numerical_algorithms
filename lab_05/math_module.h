@@ -18,5 +18,11 @@ typedef struct input_data
     int m;
 } input_data_t;
 
+typedef struct function_param
+{
+    double *array;
+    double param;
+}function_param_t;
+
 double calculate_p(double *nt_array, input_data_t inp_data);
 #endif // MATH_MODULE_H
