@@ -8,13 +8,9 @@
 int read_data(input_data_t *inp_data)
 {
     int rc = INPUT_ERROR;
-    printf("Input intial P and T: ");
-    if (scanf("%lf %lf", &(inp_data->P_initial), &(inp_data->T_initial)) == 2)
-    {
-        printf("Input T0 Tw m: ");
-        if (scanf("%lf %lf %d", &(inp_data->T0), &(inp_data->Tw), &(inp_data->m)) == 3)
-           rc = OK;
-    }
+    printf("Input T0 Tw m: ");
+    if (scanf("%lf %lf %d", &(inp_data->T0), &(inp_data->Tw), &(inp_data->m)) == 3)
+       rc = OK;
     return rc;
 }
 
