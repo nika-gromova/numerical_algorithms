@@ -31,7 +31,7 @@ int search_place(double *row, int len, double search, int *left, int *right)
     {
         mid = (*left + *right) / 2;
         if (IS_EQUAL(row[mid], search))
-            return mid; // искомый элемент уже есть в массиве узлов
+            break; // искомый элемент уже есть в массиве узлов
         if (row[mid] > search)
             *right = mid - 1;
         else
@@ -49,22 +49,22 @@ int search_place(double *row, int len, double search, int *left, int *right)
     return FOUND; // найдены индексы ближайших элементов
 }
 
-int take_dots(data_d *d_init, data_d *d_select, int pos_l, int pos_r)
+int take_dots(double *init_x, double *init_y, int size, data_d *d_select, int pos_l, int pos_r)
 {
     int index = 0;
-    while ((index < d_select->count) && (pos_l >= 0 || pos_r < d_init->count))
+    while ((index < d_select->count) && (pos_l >= 0 || pos_r < size))
     {
         if (pos_l >= 0)
         {
-            d_select->data_x[index] = d_init->data_x[pos_l];
-            d_select->data_y[index] = d_init->data_y[pos_l];
+            d_select->data_x[index] = init_x[pos_l];
+            d_select->data_y[index] = init_y[pos_l];
             pos_l--;
             index++;
         }
-        if (pos_r < d_init->count && index < d_select->count)
+        if (pos_r < size && index < d_select->count)
         {
-            d_select->data_x[index] = d_init->data_x[pos_r];
-            d_select->data_y[index] = d_init->data_y[pos_r];
+            d_select->data_x[index] = init_x[pos_r];
+            d_select->data_y[index] = init_y[pos_r];
             pos_r++;
             index++;
         }
@@ -118,7 +118,6 @@ double find(double *argument, double *value, int size, int degree, double search
 
 double interpolate(double *argument, double *value, int size, int degree, double search)
 {
-    data_d init = {argument, value, size};
     data_d selected;
     selected.count = degree + 1;
     selected.data_x = calloc(selected.count, sizeof(double));
@@ -131,7 +130,7 @@ double interpolate(double *argument, double *value, int size, int degree, double
     rc = search_place(argument, size, search, &left, &right);
     if (rc == FOUND)
     {
-        rc = take_dots(&init, &selected, left, right);
+        rc = take_dots(argument, value, size, &selected, left, right);
         if (rc == OK)
         {
             sort_inc(&selected);

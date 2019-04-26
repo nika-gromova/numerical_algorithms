@@ -32,12 +32,35 @@ static double alpha_coef = 0.285 * 10e-11;
 
 // ############################################
 
-double dichotomy(double a, double b, function_param_t params, double (*function)(double, function_param_t))
+void print_array(double *array, int n)
 {
-    double f_a = function(a, params);
-    double f_b = function(b, params);
+    for (int i = 0; i < n; i++)
+        printf("%lf ", array[i]);
+    printf("\n");
+}
+
+double calculate_gamma(double gamma, double *v_x, double T)
+{
+    double sum = exp(v_x[0]) / (1 + 0.5 * gamma);
+    double z2;
+    for (int i = 2; i < 5; i++)
+    {
+        z2 = Z_table[i - 1] * Z_table[i - 1];
+        sum += ((exp(v_x[i]) * z2) / (1 + z2 * gamma * 0.5));
+    }
+    double T3 = T * T * T;
+    double coef = 5.87 * 10e10 / T3;
+    return gamma * gamma - coef * sum;
+}
+
+
+double dichotomy(double a, double b, double *v_x, double T, double (*function)(double, double *, double))
+{
+    print_array(v_x, 6);
+    double f_a = function(a, v_x, T);
+    double f_b = function(b, v_x, T);
     double c = (a + b) * 0.5;
-    double f_c = function(c, params);
+    double f_c = function(c, v_x, T);
     while (fabs(f_c) > EPS)
     {
         if (f_a * f_c < 0.0)
@@ -47,35 +70,20 @@ double dichotomy(double a, double b, function_param_t params, double (*function)
         else
             break;
         c = (a + b) * 0.5;
-        f_a = function(a, params);
-        f_b = function(b, params);
-        f_c = function(c, params);
+        f_a = function(a, v_x, T);
+        f_b = function(b, v_x, T);
+        f_c = function(c, v_x, T);
     }
     return c;
-}
-
-
-double calculate_gamma(double gamma, function_param_t params)
-{
-    double *v_x = params.array;
-    double T = params.param;
-
-    double sum = exp(v_x[0]) / (1 + 0.5 * gamma);
-    double z2;
-    for (int i = 2; i < 5; i++)
-    {
-        z2 = Z_table[i - 1] * Z_table[i - 1];
-        sum += ((exp(v_x[i]) * z2) / (1 + z2 * gamma * 0.5));
-    }
-    double T3 = T * T *T;
-    double coef = 5.87 * 10e10 / T3;
-    return gamma * gamma - coef * sum;
 }
 
 void calculate_Q(double *Q, double T)
 {
     for (int i = 0; i < CONST_SIZE; i++)
-        Q[i] = interpolate(Q_table[0], Q_table[i + 1], TABLE_VALUE_SIZE, DEGREE, T);
+    {
+        double tmp = interpolate(Q_table[0], Q_table[i + 1], TABLE_VALUE_SIZE, DEGREE, T);
+        Q[i] = tmp;
+    }
 }
 
 void calculate_delta_E(double *delta_E, double T, double gamma)
@@ -92,6 +100,7 @@ void calculate_delta_E(double *delta_E, double T, double gamma)
 
 void calculate_K(double *K_table, double T, double gamma)
 {
+
     double cur_Q[CONST_SIZE] = { 0 };
     double cur_delta_E[4] = { 0 };
     double power = 11603.0 / T;
@@ -100,10 +109,14 @@ void calculate_K(double *K_table, double T, double gamma)
     calculate_Q(cur_Q, T);
     calculate_delta_E(cur_delta_E, T, gamma);
     for (int i = 0; i < 4; i++)
+    {
         K_table[i] = coef * (cur_Q[i + 1] / cur_Q[i]) * T_32 * exp((-1) * (E_table[i] - cur_delta_E[i]) * power);
+        printf("K_table[%d] = %lf\n", i, K_table[i]);
+    }
+    print_array(K_table, 4);
 }
 
-void gauss(double *result, double mtr[][6], double *r_vector, int n)
+void gauss(double *result, double (*mtr)[6], double *r_vector, int n)
 {
     int i = 0;
     while ( i < n)
@@ -151,6 +164,23 @@ void gauss(double *result, double mtr[][6], double *r_vector, int n)
 
 void fill_A(double mtr[][6], double *x, double v)
 {
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 6; j++)
+        {
+            if (i == 0)
+                mtr[i][j] = 1;
+            else
+                mtr[i][j] = 0;
+        }
+    }
+    int j = 1;
+    for (int i = 0; i < 4; i++)
+    {
+        mtr[i][j] = 1;
+        mtr[i][j + 1] = -1;
+        j++;
+    }
     mtr[4][0] = exp(v);
     for (int i = 2; i < CONST_SIZE + 1; i++)
         mtr[4][i] = -Z_table[i - 1] * exp(x[i - 1]);
@@ -179,6 +209,8 @@ char xi_bigger_eps(double *dx, double *x)
     return ret;
 }
 
+
+
 double calculate_system(double T, double P)
 {
     double A_mtr[][6] = { { 1, -1, 1, 0, 0, 0 },\
@@ -197,30 +229,35 @@ double calculate_system(double T, double P)
     double coef = -K * P / T;
     fill_r(right_vector, x_initial, K_table, v_initial, coef, alpha_initial);
 
-    double v = v_initial;
-    double x[5] = { 0 };
-    for (int i = 0 ; i < 5; i++)
-        x[i] = x_initial[i];
+    double v_x[5] = { 0 };
+    v_x[0] = v_initial;
+    for (int i = 1 ; i < 6; i++)
+        v_x[i] = x_initial[i - 1];
 
     double delta[6] = { 0 };
     double gamma = 0;
     double alpha = 0;
-
-    function_param_t gamma_params = {x, T};
-
     do
     {
         gauss(delta, A_mtr, right_vector, 6);
-        v += delta[0];
-        for (int i = 0; i < 5; i++)
-            x[i] += delta[i + 1];
-        gamma = dichotomy(0.0, 3.0, gamma_params, calculate_gamma);
+        for (int i = 0; i < 6; i++)
+            v_x[i] += delta[i];
+        gamma = dichotomy(0.0, 3.0, v_x, T, calculate_gamma);
         alpha = alpha_coef * pow(gamma * T, 3);
         calculate_K(K_table, T, gamma);
-        fill_A(A_mtr, x, v);
-        fill_r(right_vector, x, K_table, v, coef, alpha);
+        fill_A(A_mtr, v_x + 1, v_x[0]);
+        fill_r(right_vector, v_x + 1, K_table, v_x[0], coef, alpha);
+        printf("A_mtr :\n");
+        for (int i = 0; i < 6; i++)
+        {
+            for (int j = 0; j < 6; j++)
+                printf("%lf ", A_mtr[i][j]);
+            printf("\n");
+        }
+        printf("right_vector :\n");
+        print_array(right_vector, 6);
     }
-    while (fabs(delta[0] / v) >= EPS && xi_bigger_eps(delta + 1, x));
+    while (fabs(delta[0] / v_x[0]) >= EPS && xi_bigger_eps(delta + 1, v_x + 1));
 
     double result = 0;
     for (int i = 0; i < 5; i++)

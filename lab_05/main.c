@@ -14,12 +14,7 @@ int read_data(input_data_t *inp_data)
     return rc;
 }
 
-void print_array(double *array, int n)
-{
-    for (int i = 0; i < n; i++)
-        printf("%lf ", array[i]);
-    printf("\n");
-}
+
 
 int main(void)
 {
@@ -40,7 +35,7 @@ int main(void)
     }
     switch (rc) {
     case OK:
-        print_array(nt_array, RANGE + 1);
+        //print_array(nt_array, RANGE + 1);
         printf("result p = %lf\n", result_p);
         free(nt_array);
         break;
