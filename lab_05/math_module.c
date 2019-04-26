@@ -29,9 +29,6 @@ static double alpha_initial = 0.0;
 static double gamma_initial = 0.0;
 static double alpha_coef = 0.285 * 10e-11;
 
-
-// ############################################
-
 void print_array(double *array, int n)
 {
     for (int i = 0; i < n; i++)
@@ -56,7 +53,6 @@ double calculate_gamma(double gamma, double *v_x, double T)
 
 double dichotomy(double a, double b, double *v_x, double T, double (*function)(double, double *, double))
 {
-    print_array(v_x, 6);
     double f_a = function(a, v_x, T);
     double f_b = function(b, v_x, T);
     double c = (a + b) * 0.5;
@@ -110,10 +106,11 @@ void calculate_K(double *K_table, double T, double gamma)
     calculate_delta_E(cur_delta_E, T, gamma);
     for (int i = 0; i < 4; i++)
     {
+        //printf("coef = %lf, cur_Q[i + 1] = %lf, cur_Q[i] = %lf, T_32 = %lf, power = %lf, delta = %lf\n", coef, cur_Q[i + 1], cur_Q[i], T_32, power, (E_table[i] - cur_delta_E[i]));
         K_table[i] = coef * (cur_Q[i + 1] / cur_Q[i]) * T_32 * exp((-1) * (E_table[i] - cur_delta_E[i]) * power);
-        printf("K_table[%d] = %lf\n", i, K_table[i]);
+        //printf("K_table[%d] = %e\n", i, K_table[i]);
     }
-    print_array(K_table, 4);
+    //print_array(K_table, 4);
 }
 
 void gauss(double *result, double (*mtr)[6], double *r_vector, int n)
@@ -192,7 +189,7 @@ void fill_A(double mtr[][6], double *x, double v)
 void fill_r(double *r_vector, double *x, double *k, double v, double coef, double alpha)
 {
     for (int i = 0; i < 4; i++)
-        r_vector[i] = (-1) * (v + x[i + 1] - x[i] - log(k[i]));
+        r_vector[i] = -(v + x[i + 1] - x[i] - log(k[i]));
     double tmp = 0;
     for (int i = 1; i < CONST_SIZE; i++)
         tmp += Z_table[i] * exp(x[i]);
@@ -209,7 +206,15 @@ char xi_bigger_eps(double *dx, double *x)
     return ret;
 }
 
-
+void print_mtr(double mtr[][6])
+{
+    for (int i = 0; i < 6; i++)
+    {
+        for (int j = 0; j < 6; j++)
+            printf("%lf ", mtr[i][j]);
+        printf("\n");
+    }
+}
 
 double calculate_system(double T, double P)
 {
@@ -228,7 +233,6 @@ double calculate_system(double T, double P)
     double right_vector[6] = { 0 };
     double coef = -K * P / T;
     fill_r(right_vector, x_initial, K_table, v_initial, coef, alpha_initial);
-
     double v_x[5] = { 0 };
     v_x[0] = v_initial;
     for (int i = 1 ; i < 6; i++)
@@ -242,26 +246,25 @@ double calculate_system(double T, double P)
         gauss(delta, A_mtr, right_vector, 6);
         for (int i = 0; i < 6; i++)
             v_x[i] += delta[i];
+        printf("v_x:\n");
+        print_array(v_x, 6);
         gamma = dichotomy(0.0, 3.0, v_x, T, calculate_gamma);
+        printf("gamma = %lf\n", gamma);
         alpha = alpha_coef * pow(gamma * T, 3);
         calculate_K(K_table, T, gamma);
         fill_A(A_mtr, v_x + 1, v_x[0]);
+        printf("A = \n");
+        print_mtr(A_mtr);
+
         fill_r(right_vector, v_x + 1, K_table, v_x[0], coef, alpha);
-        printf("A_mtr :\n");
-        for (int i = 0; i < 6; i++)
-        {
-            for (int j = 0; j < 6; j++)
-                printf("%lf ", A_mtr[i][j]);
-            printf("\n");
-        }
-        printf("right_vector :\n");
+        printf("r_vector = \n");
         print_array(right_vector, 6);
     }
-    while (fabs(delta[0] / v_x[0]) >= EPS && xi_bigger_eps(delta + 1, v_x + 1));
+    while (fabs(delta[0] / v_x[0]) >= EPS);// || xi_bigger_eps(delta + 1, v_x + 1));
 
     double result = 0;
-    for (int i = 0; i < 5; i++)
-        result += exp(delta[i + 1]);
+    for (int i = 0; i < 6; i++)
+        result += exp(v_x[i + 1]);
     return result;
 }
 
@@ -287,6 +290,8 @@ void fill_nt_array(double *nt_array, double p, double h, input_data_t data)
         nt_array[i] = find_nt(p, tmp_T);
         z += h;
     }
+    printf("nt_array:\n");
+    print_array(nt_array, RANGE + 1);
 }
 
 double find_integral(double *nt_array, double p, input_data_t data)
@@ -329,7 +334,10 @@ double calculate_p(double *nt_array, input_data_t inp_data)
         else if (f_b * f_c < 0.0)
             a = c;
         else
+        {
+            printf("ERRORRRRR\n");
             break; // корня нет
+        }
         c = (a + b) / 2.0;
         f_a = f(nt_array, coef, inp_data, a);
         f_b = f(nt_array, coef, inp_data, b);
