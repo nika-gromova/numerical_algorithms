@@ -21,8 +21,8 @@ static double Q_table[][TABLE_Q_SIZE] = { { 2000, 4000, 6000, 8000, 10000, 12000
 static double E_table[] = { 12.13, 20.98, 31.00, 45.00 };
 static double Z_table[] = { 0.0, 1.0, 2.0, 3.0, 4.0 };
 
-static double P_initial = 15;
-static double T_initial = 10000.0;
+static double P_initial = 0.5;
+static double T_initial = 300;
 static double v_initial = -1.0;
 static double x_initial[] = { 2.0, -1.0, -10.0, -25.0, -35.0 };
 static double alpha_initial = 0.0;
@@ -261,8 +261,9 @@ double calculate_system(double T, double P)
     while (fabs(delta[0] / v_x[0]) >= EPS && xi_bigger_eps(delta + 1, v_x + 1));
 
     double result = 0;
-    for (int i = 0; i < 6; i++)
-        result += exp(v_x[i + 1]);
+    for (int i = 1; i < 6; i++)
+        result += exp(v_x[i]);
+    printf("gamma = %e, ne = %e, n2 = %e\n", gamma, v_x[0], v_x[2]);
     return result;
 }
 
