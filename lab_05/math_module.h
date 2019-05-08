@@ -2,9 +2,9 @@
 #define MATH_MODULE_H
 
 #define K 7242
-#define RANGE 3
+#define RANGE 40
 
-#define P1 -10
+#define P1 0
 #define P2 25
 #define EPS 10e-4
 

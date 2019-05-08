@@ -29,6 +29,9 @@ static double alpha_initial = 0.0;
 static double gamma_initial = 0.0;
 static double alpha_coef = 0.285 * 10e-11;
 
+double res_gamma;
+double res_n[6];
+
 void print_array(double *array, int n)
 {
     for (int i = 0; i < n; i++)
@@ -40,10 +43,10 @@ double calculate_gamma(double gamma, double *v_x, double T)
 {
     double sum = exp(v_x[0]) / (1 + 0.5 * gamma);
     double z2;
-    for (int i = 2; i < 5; i++)
+    for (int i = 1; i < CONST_SIZE; i++)
     {
-        z2 = Z_table[i - 1] * Z_table[i - 1];
-        sum += ((exp(v_x[i]) * z2) / (1 + z2 * gamma * 0.5));
+        z2 = Z_table[i] * Z_table[i];
+        sum += ((exp(v_x[i + 1]) * z2) / (1 + z2 * gamma * 0.5));
     }
     double T3 = T * T * T;
     double coef = 5.87 * 10e10 / T3;
@@ -194,7 +197,7 @@ void fill_r(double *r_vector, double *x, double *k, double v, double coef, doubl
     tmp = 0;
     for (int i = 0; i < CONST_SIZE; i++)
         tmp += exp(x[i]);
-    r_vector[5] = coef + exp(v) - tmp + alpha;
+    r_vector[5] = coef + exp(v) + tmp - alpha;
 }
 
 char xi_bigger_eps(double *dx, double *x)
@@ -223,7 +226,7 @@ double calculate_system(double T, double P)
     double K_table[4];
     double right_vector[6];
 
-    double v_x[5];
+    double v_x[6];
     v_x[0] = v_initial;
     for (int i = 1 ; i < 6; i++)
         v_x[i] = x_initial[i - 1];
@@ -261,9 +264,15 @@ double calculate_system(double T, double P)
     while (fabs(delta[0] / v_x[0]) >= EPS && xi_bigger_eps(delta + 1, v_x + 1));
 
     double result = 0;
+    double tmp;
+    res_n[0] = exp(v_x[0]);
     for (int i = 1; i < 6; i++)
-        result += exp(v_x[i]);
-    printf("gamma = %e, ne = %e, n2 = %e\n", gamma, v_x[0], v_x[2]);
+    {
+        tmp = exp(v_x[i]);
+        result += tmp;
+        res_n[i] = tmp;
+    }
+    res_gamma = gamma;
     return result;
 }
 
@@ -340,5 +349,8 @@ double calculate_p(double *nt_array, input_data_t inp_data)
         f_b = f(nt_array, coef, inp_data, b);
         f_c = f(nt_array, coef, inp_data, c);
     }
+    printf("gamma = %e\nn:\n", res_gamma);
+    print_array(res_n, 6);
+
     return c;
 }
