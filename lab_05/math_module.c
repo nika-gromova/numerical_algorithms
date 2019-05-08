@@ -7,10 +7,10 @@
 
 #define CONST_SIZE 5
 
-#define TABLE_VALUE_SIZE 13
+#define TABLE_Q_SIZE 13
 #define DEGREE 2
 
-static double Q_table[][TABLE_VALUE_SIZE] = { { 2000, 4000, 6000, 8000, 10000, 12000, 14000, 16000, 18000, 20000, 22000, 24000, 26000 },\
+static double Q_table[][TABLE_Q_SIZE] = { { 2000, 4000, 6000, 8000, 10000, 12000, 14000, 16000, 18000, 20000, 22000, 24000, 26000 },\
                                 { 1.0000, 1.0000, 1.0000, 1.0001, 1.0025, 1.0198, 1.0895, 1.2827, 1.6973, 2.4616, 3.6552, 5.3749, 7.6838 },\
                                 { 4.0000, 4.0000, 4.1598, 4.3006, 4.4392, 4.5661, 4.6817, 4.7923, 4.9099, 5.0511, 5.2354, 5.4841, 5.8181 },\
                                 { 5.5000, 5.5000, 5.5116, 5.9790, 6.4749, 6.9590, 7.4145, 7.8370, 8.2289, 8.5970, 8.9509, 9.3018, 9.6621 },\
@@ -21,7 +21,7 @@ static double Q_table[][TABLE_VALUE_SIZE] = { { 2000, 4000, 6000, 8000, 10000, 1
 static double E_table[] = { 12.13, 20.98, 31.00, 45.00 };
 static double Z_table[] = { 0.0, 1.0, 2.0, 3.0, 4.0 };
 
-static double P_initial = 15.0;
+static double P_initial = 15;
 static double T_initial = 10000.0;
 static double v_initial = -1.0;
 static double x_initial[] = { 2.0, -1.0, -10.0, -25.0, -35.0 };
@@ -32,7 +32,7 @@ static double alpha_coef = 0.285 * 10e-11;
 void print_array(double *array, int n)
 {
     for (int i = 0; i < n; i++)
-        printf("%lf ", array[i]);
+        printf("%e ", array[i]);
     printf("\n");
 }
 
@@ -77,7 +77,7 @@ void calculate_Q(double *Q, double T)
 {
     for (int i = 0; i < CONST_SIZE; i++)
     {
-        double tmp = interpolate(Q_table[0], Q_table[i + 1], TABLE_VALUE_SIZE, DEGREE, T);
+        double tmp = interpolate(Q_table[0], Q_table[i + 1], TABLE_Q_SIZE, DEGREE, T);
         Q[i] = tmp;
     }
 }
@@ -85,12 +85,13 @@ void calculate_Q(double *Q, double T)
 void calculate_delta_E(double *delta_E, double T, double gamma)
 {
     double coef = 8.61 * 10e-5 * T;
-    double tmp;
+    double tmp_1, tmp_2;
     gamma *= 0.5;
     for (int i = 0; i < 4; i++)
     {
-        tmp = Z_table[i + 1] * Z_table[i + 1] * gamma;
-        delta_E[i] = coef * log(((1 + tmp) * (1 + gamma)) / (1 + tmp));
+        tmp_1 = Z_table[i + 1] * Z_table[i + 1] * gamma;
+        tmp_2 = Z_table[i] * Z_table[i] * gamma;
+        delta_E[i] = coef * log(((1 + tmp_1) * (1 + gamma)) / (1 + tmp_2));
     }
 }
 
@@ -105,12 +106,7 @@ void calculate_K(double *K_table, double T, double gamma)
     calculate_Q(cur_Q, T);
     calculate_delta_E(cur_delta_E, T, gamma);
     for (int i = 0; i < 4; i++)
-    {
-        //printf("coef = %lf, cur_Q[i + 1] = %lf, cur_Q[i] = %lf, T_32 = %lf, power = %lf, delta = %lf\n", coef, cur_Q[i + 1], cur_Q[i], T_32, power, (E_table[i] - cur_delta_E[i]));
         K_table[i] = coef * (cur_Q[i + 1] / cur_Q[i]) * T_32 * exp((-1) * (E_table[i] - cur_delta_E[i]) * power);
-        //printf("K_table[%d] = %e\n", i, K_table[i]);
-    }
-    //print_array(K_table, 4);
 }
 
 void gauss(double *result, double (*mtr)[6], double *r_vector, int n)
@@ -165,7 +161,7 @@ void fill_A(double mtr[][6], double *x, double v)
     {
         for (int j = 0; j < 6; j++)
         {
-            if (i == 0)
+            if (j == 0)
                 mtr[i][j] = 1;
             else
                 mtr[i][j] = 0;
@@ -174,16 +170,17 @@ void fill_A(double mtr[][6], double *x, double v)
     int j = 1;
     for (int i = 0; i < 4; i++)
     {
-        mtr[i][j] = 1;
-        mtr[i][j + 1] = -1;
+        mtr[i][j] = -1;
+        mtr[i][j + 1] = 1;
         j++;
     }
     mtr[4][0] = exp(v);
-    for (int i = 2; i < CONST_SIZE + 1; i++)
-        mtr[4][i] = -Z_table[i - 1] * exp(x[i - 1]);
+    mtr[4][1] = 0.0;
+    for (int i = 1; i < CONST_SIZE; i++)
+        mtr[4][i + 1] = -Z_table[i] * exp(x[i]);
     mtr[5][0] = -exp(v);
-    for (int i = 1; i < CONST_SIZE + 1; i++)
-        mtr[5][i] = -exp(x[i - 1]);
+    for (int i = 0; i < CONST_SIZE; i++)
+        mtr[5][i + 1] = -exp(x[i]);
 }
 
 void fill_r(double *r_vector, double *x, double *k, double v, double coef, double alpha)
@@ -194,7 +191,10 @@ void fill_r(double *r_vector, double *x, double *k, double v, double coef, doubl
     for (int i = 1; i < CONST_SIZE; i++)
         tmp += Z_table[i] * exp(x[i]);
     r_vector[4] = -exp(v) + tmp;
-    r_vector[5] = coef + exp(v) + tmp + Z_table[0] * exp(x[0]) - alpha;
+    tmp = 0;
+    for (int i = 0; i < CONST_SIZE; i++)
+        tmp += exp(x[i]);
+    r_vector[5] = coef + exp(v) - tmp + alpha;
 }
 
 char xi_bigger_eps(double *dx, double *x)
@@ -211,29 +211,19 @@ void print_mtr(double mtr[][6])
     for (int i = 0; i < 6; i++)
     {
         for (int j = 0; j < 6; j++)
-            printf("%lf ", mtr[i][j]);
+            printf("%e ", mtr[i][j]);
         printf("\n");
     }
 }
 
 double calculate_system(double T, double P)
 {
-    double A_mtr[][6] = { { 1, -1, 1, 0, 0, 0 },\
-                          { 1, 0, -1, 1, 0, 0 },\
-                          { 1, 0, 0, -1, 1, 0 },\
-                          { 1, 0, 0, 0, -1, 1 },\
-                          { exp(v_initial), 0 },\
-                          {-exp(v_initial) }
-                        };
-    fill_A(A_mtr, x_initial, v_initial);
-
-    double K_table[4] = { 0 };
-    calculate_K(K_table, T, gamma_initial);
-
-    double right_vector[6] = { 0 };
     double coef = -K * P / T;
-    fill_r(right_vector, x_initial, K_table, v_initial, coef, alpha_initial);
-    double v_x[5] = { 0 };
+    double A_mtr[6][6];
+    double K_table[4];
+    double right_vector[6];
+
+    double v_x[5];
     v_x[0] = v_initial;
     for (int i = 1 ; i < 6; i++)
         v_x[i] = x_initial[i - 1];
@@ -241,26 +231,34 @@ double calculate_system(double T, double P)
     double delta[6] = { 0 };
     double gamma = 0;
     double alpha = 0;
+
+    fill_A(A_mtr, x_initial, v_initial);
+    calculate_K(K_table, T, gamma_initial);
+    fill_r(right_vector, x_initial, K_table, v_initial, coef, alpha_initial);
+
     do
     {
         gauss(delta, A_mtr, right_vector, 6);
         for (int i = 0; i < 6; i++)
             v_x[i] += delta[i];
-        printf("v_x:\n");
-        print_array(v_x, 6);
         gamma = dichotomy(0.0, 3.0, v_x, T, calculate_gamma);
-        printf("gamma = %lf\n", gamma);
         alpha = alpha_coef * pow(gamma * T, 3);
         calculate_K(K_table, T, gamma);
         fill_A(A_mtr, v_x + 1, v_x[0]);
-        printf("A = \n");
-        print_mtr(A_mtr);
-
         fill_r(right_vector, v_x + 1, K_table, v_x[0], coef, alpha);
-        printf("r_vector = \n");
+/*
+        printf("v_x:\n");
+        print_array(v_x, 6);
+        printf("delta_v_x:\n");
+        print_array(delta, 6);
+        printf("gamma = %lf\n", gamma);
+        printf("A:\n");
+        print_mtr(A_mtr);
+        printf("r_vector = ");
         print_array(right_vector, 6);
+*/
     }
-    while (fabs(delta[0] / v_x[0]) >= EPS);// || xi_bigger_eps(delta + 1, v_x + 1));
+    while (fabs(delta[0] / v_x[0]) >= EPS && xi_bigger_eps(delta + 1, v_x + 1));
 
     double result = 0;
     for (int i = 0; i < 6; i++)
@@ -290,8 +288,6 @@ void fill_nt_array(double *nt_array, double p, double h, input_data_t data)
         nt_array[i] = find_nt(p, tmp_T);
         z += h;
     }
-    printf("nt_array:\n");
-    print_array(nt_array, RANGE + 1);
 }
 
 double find_integral(double *nt_array, double p, input_data_t data)
@@ -327,7 +323,7 @@ double calculate_p(double *nt_array, input_data_t inp_data)
     double f_a = f(nt_array, coef, inp_data, a);
     double f_b = f(nt_array, coef, inp_data, b);
     double f_c = f(nt_array, coef, inp_data, c);
-    while (fabs(f_c) > EPS)// && ind < 10)
+    while (fabs(f_c) > EPS)
     {
         if (f_a * f_c < 0.0)
             b = c;
