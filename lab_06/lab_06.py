@@ -4,8 +4,15 @@ def f(x, a0 = 1, a1 = 2, a2 = 3):
 def f_derivate(x, a0 = 1, a1 = 2, a2 = 3):
     return a0 * a1 / ((a1 + a2 * x) ** 2)
 
-def eta_ksi_derivate(a0 = 1, a1 = 2):
-    return a1 / a0
+
+# ksi(x) = 1 / x
+# eta(y) = 1 / y = (a1 + a2*x) / (a0*x) = a2/a0 + a1/a0 * 1/x = a + b*ksi
+# eta'|y = 1 / (y * y)
+# ksi'|y = 1 / (x * x)
+# eta'|ksi = (a + b*ksi)' = b = a1/a0
+
+def ksi(x, a0 = 1, a1 = 2):
+    return (a1 / a0) * x
 def eta_y_derivate(y):
     return 1 / (y * y)
 def ksi_x_derivate(x):
@@ -69,11 +76,16 @@ def runge_left_side(y, h):
 def align_veriable(x, y):
     y_len = len(y)
     result = [0] * y_len
+        
+    tmp = [ksi(x[i]) for i in range(1, len(x))]
+    tmp = right_side_form(tmp, h)
+    eta_ksi_derivate = tmp[0]
+
     for i in range(0, y_len):
         if x[i] == 0:
             result[i] = None
         else:
-            result[i] = (ksi_x_derivate(x[i]) / eta_y_derivate(y[i])) * eta_ksi_derivate()
+            result[i] = (ksi_x_derivate(x[i]) / eta_y_derivate(y[i])) * eta_ksi_derivate
     return result
 
     
@@ -81,7 +93,7 @@ def real_derivate(x):
     return [f_derivate(i) for i in x]
 
 h = 1
-x, y = fill_table(0, 10, 1);
+x, y = fill_table(1, 11, 1);
 print_table("x:", x)
 print_table("y:", y)
 print_table("real:", real_derivate(x))
