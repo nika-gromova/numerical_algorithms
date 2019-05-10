@@ -31,7 +31,11 @@ int search_place(double *row, int len, double search, int *left, int *right)
     {
         mid = (*left + *right) / 2;
         if (IS_EQUAL(row[mid], search))
-            break; // искомый элемент уже есть в массиве узлов
+        {
+            *left = mid;
+            *right = mid;
+            return IN_TABLE; // искомый элемент уже есть в массиве узлов
+        }
         if (row[mid] > search)
             *right = mid - 1;
         else
@@ -128,7 +132,9 @@ double interpolate(double *argument, double *value, int size, int degree, double
     int rc = OK;
     double result = 0.0;
     rc = search_place(argument, size, search, &left, &right);
-    if (rc == FOUND)
+    if (rc == IN_TABLE)
+        result = value[left];
+    else if (rc == FOUND)
     {
         rc = take_dots(argument, value, size, &selected, left, right);
         if (rc == OK)
@@ -136,9 +142,9 @@ double interpolate(double *argument, double *value, int size, int degree, double
             sort_inc(&selected);
             result = find(selected.data_x, selected.data_y, selected.count, degree, search, &rc);
         }
+        if (rc != OK)
+            result = 0.0;
     }
-    if (rc != OK)
-        result = 0.0;
     free(selected.data_x);
     free(selected.data_y);
     return result;

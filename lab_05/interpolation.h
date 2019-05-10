@@ -13,6 +13,7 @@
 #define ZERO_DEVISION  -15
 #define EXTRAPOLATION  -20
 #define FOUND          -25
+#define IN_TABLE       -30
 
 typedef struct data_t
 {

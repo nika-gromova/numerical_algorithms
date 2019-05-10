@@ -39,6 +39,16 @@ void print_array(double *array, int n)
     printf("\n");
 }
 
+void print_mtr(double mtr[][6])
+{
+    for (int i = 0; i < 6; i++)
+    {
+        for (int j = 0; j < 6; j++)
+            printf("%e ", mtr[i][j]);
+        printf("\n");
+    }
+}
+
 double calculate_gamma(double gamma, double *v_x, double T)
 {
     double sum = exp(v_x[0]) / (1 + 0.5 * gamma);
@@ -63,14 +73,18 @@ double dichotomy(double a, double b, double *v_x, double T, double (*function)(d
     while (fabs(f_c) > EPS)
     {
         if (f_a * f_c < 0.0)
+        {
             b = c;
+            f_b = f_c;
+        }
         else if (f_b * f_c < 0.0)
+        {
             a = c;
+            f_a = f_c;
+        }
         else
             break;
         c = (a + b) * 0.5;
-        f_a = function(a, v_x, T);
-        f_b = function(b, v_x, T);
         f_c = function(c, v_x, T);
     }
     return c;
@@ -109,7 +123,7 @@ void calculate_K(double *K_table, double T, double gamma)
     calculate_Q(cur_Q, T);
     calculate_delta_E(cur_delta_E, T, gamma);
     for (int i = 0; i < 4; i++)
-        K_table[i] = coef * (cur_Q[i + 1] / cur_Q[i]) * T_32 * exp((-1) * (E_table[i] - cur_delta_E[i]) * power);
+        K_table[i] = coef * (cur_Q[i + 1] / cur_Q[i]) * T_32 * exp((cur_delta_E[i] - E_table[i]) * power);
 }
 
 void gauss(double *result, double (*mtr)[6], double *r_vector, int n)
@@ -123,7 +137,7 @@ void gauss(double *result, double (*mtr)[6], double *r_vector, int n)
         {
             if (fabs(mtr[k][i]) >= max_elem)
             {
-                max_elem = mtr[k][i];
+                max_elem = fabs(mtr[k][i]);
                 max_index = k;
             }
         }
@@ -202,22 +216,13 @@ void fill_r(double *r_vector, double *x, double *k, double v, double coef, doubl
 
 char xi_bigger_eps(double *dx, double *x)
 {
-    char ret = 1;
+    char ret = 0;
     for (int i = 0; i < CONST_SIZE; i++)
         if (fabs(dx[i] / x[i]) >= EPS)
-            ret = 0;
+            ret = 1;
     return ret;
 }
 
-void print_mtr(double mtr[][6])
-{
-    for (int i = 0; i < 6; i++)
-    {
-        for (int j = 0; j < 6; j++)
-            printf("%e ", mtr[i][j]);
-        printf("\n");
-    }
-}
 
 double calculate_system(double T, double P)
 {
@@ -261,7 +266,7 @@ double calculate_system(double T, double P)
         print_array(right_vector, 6);
 */
     }
-    while (fabs(delta[0] / v_x[0]) >= EPS && xi_bigger_eps(delta + 1, v_x + 1));
+    while (fabs(delta[0] / v_x[0]) >= EPS || xi_bigger_eps(delta + 1, v_x + 1));
 
     double result = 0;
     double tmp;
@@ -336,17 +341,21 @@ double calculate_p(double *nt_array, input_data_t inp_data)
     while (fabs(f_c) > EPS)
     {
         if (f_a * f_c < 0.0)
+        {
             b = c;
+            f_b = f_c;
+        }
         else if (f_b * f_c < 0.0)
+        {
             a = c;
+            f_a = f_c;
+        }
         else
         {
             printf("ERRORRRRR\n");
             break; // корня нет
         }
         c = (a + b) / 2.0;
-        f_a = f(nt_array, coef, inp_data, a);
-        f_b = f(nt_array, coef, inp_data, b);
         f_c = f(nt_array, coef, inp_data, c);
     }
     printf("gamma = %e\nn:\n", res_gamma);
