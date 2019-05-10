@@ -63,14 +63,19 @@ def runge_left_side(y, h):
     y_len = len(y)
     r = 2
     p = 1
+    zn = r ** p - 1
 
     y_h = left_side_form(y, h)
+    y_h[0] = (y[1] - y[0]) / h
+    
     y_rh = [None] * y_len
     for i in range(2, y_len):
         y_rh[i] = (y[i] - y[i - 2]) / (r * h)
+    for i in range(2):
+        y_rh[i] = (y[i + 2] - y[i]) / (r * h)
     result = [None] * y_len
-    for i in range(2, y_len):
-        result[i] = y_h[i] + (y_h[i] - y_rh[i]) / (r ** p - 1)
+    for i in range(y_len):
+        result[i] = y_h[i] + (y_h[i] - y_rh[i]) / zn
     return result
 
 def align_veriable(x, y):
