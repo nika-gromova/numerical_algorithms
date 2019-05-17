@@ -6,7 +6,7 @@
 
 #define P1 0
 #define P2 25
-#define EPS 10e-4
+#define EPS 1e-4
 
 typedef struct input_data
 {

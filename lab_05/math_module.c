@@ -24,10 +24,10 @@ static double Z_table[] = { 0.0, 1.0, 2.0, 3.0, 4.0 };
 static double P_initial = 0.5;
 static double T_initial = 300;
 static double v_initial = -1.0;
-static double x_initial[] = { 2.0, -1.0, -10.0, -25.0, -35.0 };
+static double x_initial[] = { 2.0, -1.0, -2.0, -25.0, -35.0 };
 static double alpha_initial = 0.0;
 static double gamma_initial = 0.0;
-static double alpha_coef = 0.285 * 10e-11;
+static double alpha_coef = 0.285e-11;
 
 double res_gamma;
 double res_n[6];
@@ -59,7 +59,7 @@ double calculate_gamma(double gamma, double *v_x, double T)
         sum += ((exp(v_x[i + 1]) * z2) / (1 + z2 * gamma * 0.5));
     }
     double T3 = T * T * T;
-    double coef = 5.87 * 10e10 / T3;
+    double coef = 5.87 * 1e10 / T3;
     return gamma * gamma - coef * sum;
 }
 
@@ -101,7 +101,7 @@ void calculate_Q(double *Q, double T)
 
 void calculate_delta_E(double *delta_E, double T, double gamma)
 {
-    double coef = 8.61 * 10e-5 * T;
+    double coef = 8.61 * 1e-5 * T;
     double tmp_1, tmp_2;
     gamma *= 0.5;
     for (int i = 0; i < 4; i++)
@@ -118,12 +118,16 @@ void calculate_K(double *K_table, double T, double gamma)
     double cur_Q[CONST_SIZE] = { 0 };
     double cur_delta_E[4] = { 0 };
     double power = 11603.0 / T;
-    double coef = 4.83 * 10e-3;
+    double coef = 4.83 * 1e-3;
     double T_32 = pow(T, 1.5);
     calculate_Q(cur_Q, T);
     calculate_delta_E(cur_delta_E, T, gamma);
     for (int i = 0; i < 4; i++)
+    {
+        //double tmp = exp((cur_delta_E[i] - E_table[i]) * power);
+        //printf("%e\n", tmp);
         K_table[i] = coef * (cur_Q[i + 1] / cur_Q[i]) * T_32 * exp((cur_delta_E[i] - E_table[i]) * power);
+    }
 }
 
 void gauss(double *result, double (*mtr)[6], double *r_vector, int n)
@@ -243,10 +247,12 @@ double calculate_system(double T, double P)
     fill_A(A_mtr, x_initial, v_initial);
     calculate_K(K_table, T, gamma_initial);
     fill_r(right_vector, x_initial, K_table, v_initial, coef, alpha_initial);
-
+    printf("A:\n");
+    print_mtr(A_mtr);
     do
     {
         gauss(delta, A_mtr, right_vector, 6);
+
         for (int i = 0; i < 6; i++)
             v_x[i] += delta[i];
         gamma = dichotomy(0.0, 3.0, v_x, T, calculate_gamma);
@@ -254,6 +260,8 @@ double calculate_system(double T, double P)
         calculate_K(K_table, T, gamma);
         fill_A(A_mtr, v_x + 1, v_x[0]);
         fill_r(right_vector, v_x + 1, K_table, v_x[0], coef, alpha);
+        printf("A:\n");
+        print_mtr(A_mtr);
 /*
         printf("v_x:\n");
         print_array(v_x, 6);
