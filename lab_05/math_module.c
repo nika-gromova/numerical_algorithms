@@ -67,23 +67,17 @@ double calculate_gamma(double gamma, double *v_x, double T)
 double dichotomy(double a, double b, double *v_x, double T, double (*function)(double, double *, double))
 {
     double f_a = function(a, v_x, T);
-    double f_b = function(b, v_x, T);
     double c = (a + b) * 0.5;
     double f_c = function(c, v_x, T);
-    while (fabs(f_c) > EPS)
+    while (fabs(b - a) > EPS)
     {
         if (f_a * f_c < 0.0)
-        {
             b = c;
-            f_b = f_c;
-        }
-        else if (f_b * f_c < 0.0)
+        else
         {
             a = c;
             f_a = f_c;
         }
-        else
-            break;
         c = (a + b) * 0.5;
         f_c = function(c, v_x, T);
     }
@@ -247,8 +241,6 @@ double calculate_system(double T, double P)
     fill_A(A_mtr, x_initial, v_initial);
     calculate_K(K_table, T, gamma_initial);
     fill_r(right_vector, x_initial, K_table, v_initial, coef, alpha_initial);
-    printf("A:\n");
-    print_mtr(A_mtr);
     do
     {
         gauss(delta, A_mtr, right_vector, 6);
@@ -260,8 +252,6 @@ double calculate_system(double T, double P)
         calculate_K(K_table, T, gamma);
         fill_A(A_mtr, v_x + 1, v_x[0]);
         fill_r(right_vector, v_x + 1, K_table, v_x[0], coef, alpha);
-        printf("A:\n");
-        print_mtr(A_mtr);
 /*
         printf("v_x:\n");
         print_array(v_x, 6);
@@ -344,24 +334,15 @@ double calculate_p(double *nt_array, input_data_t inp_data)
     double b = P2;
     double c = (double)(a + b) / 2.0;
     double f_a = f(nt_array, coef, inp_data, a);
-    double f_b = f(nt_array, coef, inp_data, b);
     double f_c = f(nt_array, coef, inp_data, c);
-    while (fabs(f_c) > EPS)
+    while (fabs(b - a) > EPS)
     {
         if (f_a * f_c < 0.0)
-        {
             b = c;
-            f_b = f_c;
-        }
-        else if (f_b * f_c < 0.0)
+        else
         {
             a = c;
             f_a = f_c;
-        }
-        else
-        {
-            printf("ERRORRRRR\n");
-            break; // корня нет
         }
         c = (a + b) / 2.0;
         f_c = f(nt_array, coef, inp_data, c);
